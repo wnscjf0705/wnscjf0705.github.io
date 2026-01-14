@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ClassMate AI - 학급 반 편성</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Babel Standalone for in-browser JSX compilation -->
+    <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
       body {
@@ -14,62 +16,57 @@
         background-color: #f8fafc;
       }
     </style>
-    <!-- Import Map for External Dependencies -->
-    <script type="importmap">
+  <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.263.1",
-    "@google/genai": "https://esm.sh/@google/genai@0.1.1",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
   }
 }
 </script>
-  </head>
+</head>
   <body>
     <div id="root"></div>
 
-    <!-- Main Application Logic -->
-    <script type="text/babel" data-presets="react,typescript" data-type="module">
-      import React, { useState, useEffect, useCallback } from 'react';
-      import ReactDOM from 'react-dom/client';
-      import { Users, Settings, Wand2, Trash2, Copy, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
-      import { GoogleGenAI, Type } from '@google/genai';
+    <!-- Main Application Script -->
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+      import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+      import { Users, Settings, Wand2, Trash2, Copy, CheckCircle2, AlertCircle, Sparkles } from 'https://esm.sh/lucide-react@0.263.1';
+      import { GoogleGenAI, Type } from 'https://esm.sh/@google/genai@0.1.1';
 
-      // --- MOCK PROCESS ENV ---
-      // 로컬 환경에서 실행 시 process.env가 없으므로 API 키 주입을 위한 플레이스홀더를 생성합니다.
-      // 실제 사용 시 아래 API_KEY 값에 키를 입력하거나 브라우저 콘솔에서 설정해야 합니다.
+      // ----------------------------------------------------------------------
+      // CONFIGURATION & MOCKS
+      // ----------------------------------------------------------------------
+      
+      // 로컬 실행 시 process.env가 없으므로 윈도우 객체에 주입
       if (!window.process) {
         window.process = { env: { API_KEY: '' } };
       }
 
-      // --- TYPES & INTERFACES ---
-      interface Student {
-        id: string;
-        name: string;
-      }
+      // ----------------------------------------------------------------------
+      // TYPES
+      // ----------------------------------------------------------------------
+      // (TypeScript interfaces are handled by Babel Standalone automatically)
 
-      interface Group {
-        id: number;
-        name: string;
-        students: Student[];
-      }
-
-      // --- SERVICES ---
+      // ----------------------------------------------------------------------
+      // SERVICE: Gemini AI
+      // ----------------------------------------------------------------------
+      
       const generateSampleNames = async (count = 20) => {
+        // API KEY 확인
         const apiKey = window.process.env.API_KEY;
-        
         if (!apiKey) {
-          console.warn("API Key가 설정되지 않았습니다. window.process.env.API_KEY를 확인하세요.");
+          console.warn("API Key is missing. Please set window.process.env.API_KEY in the code or console.");
           return [];
         }
 
         const ai = new GoogleGenAI({ apiKey });
 
         try {
-          // Note: using explicit model name as per guidelines for basic text/json tasks
           const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
             contents: `Generate a list of ${count} realistic Korean full names. Return only the names as a JSON array of strings. Do not include markdown code blocks.`,
@@ -95,19 +92,27 @@
         }
       };
 
-      // --- COMPONENTS ---
+      // ----------------------------------------------------------------------
+      // COMPONENT: Button
+      // ----------------------------------------------------------------------
 
-      // Button Component
       const Button = ({ 
         children, 
         variant = 'primary', 
+        size = 'md',
         isLoading, 
         icon,
         className = '',
         ...props 
       }) => {
-        const baseStyles = "inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
+        const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed";
         
+        const sizes = {
+          sm: "px-3 py-1.5 text-sm",
+          md: "px-4 py-2 text-base",
+          lg: "px-6 py-3 text-lg"
+        };
+
         const variants = {
           primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm",
           secondary: "bg-indigo-100 text-indigo-700 hover:bg-indigo-200 focus:ring-indigo-500",
@@ -117,7 +122,7 @@
 
         return (
           <button 
-            className={`${baseStyles} ${variants[variant]} ${className}`}
+            className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`}
             disabled={isLoading || props.disabled}
             {...props}
           >
@@ -134,7 +139,10 @@
         );
       };
 
-      // Header Component
+      // ----------------------------------------------------------------------
+      // COMPONENT: Header
+      // ----------------------------------------------------------------------
+
       const Header = () => {
         return (
           <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
@@ -158,8 +166,12 @@
         );
       };
 
-      // Main App Component
+      // ----------------------------------------------------------------------
+      // COMPONENT: App (Main Logic)
+      // ----------------------------------------------------------------------
+
       const App = () => {
+        // State
         const [inputText, setInputText] = useState('');
         const [groupCount, setGroupCount] = useState(2);
         const [groups, setGroups] = useState([]);
@@ -167,17 +179,18 @@
         const [isAiLoading, setIsAiLoading] = useState(false);
         const [notification, setNotification] = useState(null);
 
+        // Helper to show temporary notification
         const showNotification = (message, type = 'success') => {
           setNotification({ message, type });
           setTimeout(() => setNotification(null), 3000);
         };
 
+        // Generate Sample Data using Gemini
         const handleAiFill = async () => {
-          // User friendly check for API Key
+          // Check for API Key presence
           if (!window.process.env.API_KEY) {
-             showNotification('API Key가 설정되지 않았습니다. index.html 파일 내 설정을 확인해주세요.', 'error');
-             // Tip: You can edit the index.html logic line: window.process = { env: { API_KEY: 'YOUR_KEY' } };
-             return;
+            showNotification('API Key가 설정되지 않았습니다. index.html 파일 코드를 확인해주세요.', 'error');
+            return;
           }
 
           setIsAiLoading(true);
@@ -200,6 +213,7 @@
           }
         };
 
+        // Clear Input
         const handleClear = () => {
           if (confirm('모든 입력 데이터를 지우시겠습니까?')) {
             setInputText('');
@@ -207,6 +221,7 @@
           }
         };
 
+        // Sorting Logic
         const handleSort = () => {
           const lines = inputText.trim().split('\n');
           const validNames = lines
@@ -225,20 +240,22 @@
 
           setIsGenerating(true);
 
+          // Simulate thinking/processing for better UX
           setTimeout(() => {
+            // 1. Create Student Objects
             const students = validNames.map((name, index) => ({
               id: `student-${index}-${Date.now()}`,
               name
             }));
 
-            // Fisher-Yates Shuffle
+            // 2. Fisher-Yates Shuffle
             const shuffled = [...students];
             for (let i = shuffled.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
               [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
-            // Round-Robin Distribution
+            // 3. Round-Robin Distribution
             const newGroups = Array.from({ length: groupCount }, (_, i) => ({
               id: i + 1,
               name: `${i + 1}반`,
@@ -256,6 +273,7 @@
           }, 600);
         };
 
+        // Export to Clipboard
         const copyToClipboard = () => {
           if (groups.length === 0) return;
           
@@ -277,6 +295,7 @@
 
             <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
               
+              {/* Notification Toast */}
               {notification && (
                 <div className={`fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center transform transition-all duration-300 ease-in-out ${
                   notification.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-500 text-white'
@@ -437,7 +456,10 @@
         );
       };
 
-      // Mount the App
+      // ----------------------------------------------------------------------
+      // INITIALIZATION
+      // ----------------------------------------------------------------------
+      
       const rootElement = document.getElementById('root');
       if (!rootElement) {
         throw new Error("Could not find root element to mount to");
