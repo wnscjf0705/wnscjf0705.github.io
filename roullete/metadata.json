@@ -1,0 +1,5 @@
+{
+  "name": "Lucky Menu Roulette",
+  "description": "A responsive, interactive decision-making roulette wheel. Users can manually add menu items. Features smooth animations and mobile-first design.",
+  "requestFramePermissions": []
+}
